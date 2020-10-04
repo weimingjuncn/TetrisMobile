@@ -11,14 +11,36 @@ public class GameManager : MonoBehaviour
     public Color[] colors;
     Transform blockHolder;
 
+    int escapeTimes = 0;//退出输入计时
+
     private void Awake()
     {
         ctrl = GetComponent<Ctrl>();
         blockHolder = transform.Find("BlockHolder");
     }
-
+    IEnumerator resetTimes()
+    {
+        yield return new WaitForSeconds(1);
+        escapeTimes = 0;
+    }
     void Update()
     {
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            //这个地方可以写“再按一次退出”的提示
+            Debug.Log("再按一次退出");
+            ShowAndroidToastMessage("再按一次退出");
+            escapeTimes++;
+            Debug.Log(escapeTimes);
+
+            StartCoroutine("resetTimes");
+            if (escapeTimes > 1)
+            {
+                Debug.Log("退出");
+                Application.Quit();
+                escapeTimes = 0;
+            }
+        }
         if (isPause) return;
         if (currentShape == null)
         {
@@ -74,6 +96,24 @@ public class GameManager : MonoBehaviour
         {
             Destroy(currentShape.gameObject);
             currentShape = null;
+        }
+    }
+    /// <summary>
+    /// 弹出信息提示
+    /// </summary>
+    /// <param name="message">要弹出的信息</param>
+    public void ShowAndroidToastMessage(string message)
+    {
+        AndroidJavaClass unityPlayer = new AndroidJavaClass("com.unity3d.player.UnityPlayer");
+        var unityActivity = unityPlayer.GetStatic<AndroidJavaObject>("currentActivity");
+        if (unityActivity != null)
+        {
+            AndroidJavaClass toastClass = new AndroidJavaClass("android.widget.Toast");
+            unityActivity.Call("runOnUiThread", new AndroidJavaRunnable(() =>
+            {
+                AndroidJavaObject toastObject = toastClass.CallStatic<AndroidJavaObject>("makeText", unityActivity, message, 0);
+                toastObject.Call("show");
+            }));
         }
     }
 }

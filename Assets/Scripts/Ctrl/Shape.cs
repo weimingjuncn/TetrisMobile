@@ -8,11 +8,11 @@ public class Shape : MonoBehaviour
     Transform pivot;
     Ctrl ctrl;
     GameManager gameManager;
-    bool isPause = false;
-    bool isSpeedUp = false;
-    float timer = 0;
-    float stepTime = 0.8f;
-    int multiple = 15;
+    bool isPause = false;//是否暂停
+    bool isSpeedUp = false;//是否加速
+    float timer = 0;//计时器
+    float stepTime = 0.8f;//方块走一步用的时间
+    int multiple = 2;//加速倍数
 
     private void Awake()
     {
@@ -29,6 +29,7 @@ public class Shape : MonoBehaviour
         }
         InputControl();
         InputByButton.ResetButtonState();
+
     }
 
     private void Fall()
@@ -52,6 +53,14 @@ public class Shape : MonoBehaviour
 
     private void InputControl()
     {
+        if (isSpeedUp)
+        {
+            stepTime = 0.05f;
+        }
+        else
+        {
+            stepTime = 0.8f;
+        }
         float h = 0;
         if(Input.GetKeyDown(KeyCode.LeftArrow)
             || InputByButton.isLeft)
@@ -91,13 +100,17 @@ public class Shape : MonoBehaviour
                 ctrl.audioManager.PlayControl();
             }
         }
-        //if (Input.GetKeyDown(KeyCode.DownArrow))
-        //{
-        //    isSpeedUp = true;
-        //    stepTime /= multiple;
-        //}
-        if (Input.GetKeyDown(KeyCode.DownArrow)
-            || InputByButton.isDown)
+        //长按向下按钮加速下降
+        if (InputByButton.isPress)
+        {
+            isSpeedUp = true;
+        }
+        else
+        {
+            isSpeedUp = false;
+        }
+        //单按向下按钮向下移动一步
+        if (Input.GetKeyDown(KeyCode.DownArrow) || InputByButton.isDown)
         {
             Vector3 pos = transform.position;
             pos.y -= 1;
